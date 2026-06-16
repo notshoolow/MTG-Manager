@@ -1,0 +1,389 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                 String               @id @default(uuid())
+  name               String
+  email              String               @unique
+  role               String               @default("PLAYER")
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  avatarUrl          String?
+  registrations      PlayerRegistration[]
+  stores             Store[]              @relation("StoreToOwner")
+  prizes             UserPrize[]
+  cart               Cart?
+  orders             Order[]
+  notifications      Notification[]
+  stockNotifications StockNotification[]
+  buylistRequests    BuylistRequest[]
+  storeCredit        Float                @default(0.0)
+}
+
+model Store {
+  id                        String       @id @default(uuid())
+  name                      String
+  ownerId                   String
+  createdAt                 DateTime     @default(now())
+  updatedAt                 DateTime     @updatedAt
+  owner                     User         @relation("StoreToOwner", fields: [ownerId], references: [id])
+  tournaments               Tournament[]
+  priceAlertDailyThreshold  Float        @default(10.0)
+  priceAlertWeeklyThreshold Float        @default(20.0)
+  priceAlerts               PriceAlert[]
+  buylistDefaultRate        Float        @default(70.0)
+  buylistDefaultRateCredit  Float        @default(75.0)
+}
+
+model Tournament {
+  id                String               @id @default(uuid())
+  name              String
+  format            String               @default("COMMANDER")
+  status            String               @default("UPCOMING")
+  roundTimer        Int                  @default(50)
+  currentRound      Int                  @default(0)
+  totalRounds       Int?
+  pairingMode       String               @default("SWISS")
+  roundStartedAt    DateTime?
+  date              DateTime?
+  storeId           String
+  firstPlacePoints  Int?
+  secondPlacePoints Int?
+  thirdPlacePoints  Int?
+  fourthPlacePoints Int?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  matches           Match[]
+  registrations     PlayerRegistration[]
+  store             Store                @relation(fields: [storeId], references: [id])
+  missions          TournamentMission[]
+  prizes            TournamentPrize[]
+  awardedPrizes     UserPrize[]
+}
+
+model PlayerRegistration {
+  id           String        @id @default(uuid())
+  tournamentId String
+  userId       String
+  deckUrl      String?
+  deckStatus   String        @default("PENDING")
+  deckCost     Float?
+  isPaid       Boolean       @default(false)
+  score        Int           @default(0)
+  drop         Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  matchPlayers MatchPlayer[]
+  user         User          @relation(fields: [userId], references: [id])
+  tournament   Tournament    @relation(fields: [tournamentId], references: [id])
+
+  @@unique([tournamentId, userId])
+}
+
+model Match {
+  id           String        @id @default(uuid())
+  tournamentId String
+  roundNumber  Int
+  tableNumber  Int           @default(0)
+  status       String        @default("IN_PROGRESS")
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  tournament   Tournament    @relation(fields: [tournamentId], references: [id])
+  matchPlayers MatchPlayer[]
+}
+
+model MatchPlayer {
+  id             String             @id @default(uuid())
+  matchId        String
+  registrationId String
+  points         Int                @default(0)
+  customMissions Int                @default(0)
+  status         String             @default("PENDING")
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  registration   PlayerRegistration @relation(fields: [registrationId], references: [id])
+  match          Match              @relation(fields: [matchId], references: [id])
+}
+
+model TournamentPrize {
+  id                String     @id @default(uuid())
+  tournamentId      String
+  name              String
+  startPlace        Int
+  endPlace          Int
+  storeCreditAmount Float?
+  tournament        Tournament @relation(fields: [tournamentId], references: [id])
+}
+
+model TournamentMission {
+  id           String     @id @default(uuid())
+  tournamentId String
+  description  String
+  points       Int
+  tournament   Tournament @relation(fields: [tournamentId], references: [id])
+}
+
+model UserPrize {
+  id           String      @id @default(uuid())
+  userId       String
+  tournamentId String?
+  name         String
+  awardedAt    DateTime    @default(now())
+  place        Int?
+  tournament   Tournament? @relation(fields: [tournamentId], references: [id])
+  user         User        @relation(fields: [userId], references: [id])
+}
+
+model ScryfallCard {
+  id              String    @id
+  oracleId        String
+  name            String
+  setCode         String
+  setName         String
+  collectorNumber String
+  rarity          String
+  typeLine        String
+  oracleText      String?
+  manaCost        String?
+  colors          String
+  colorIdentity   String
+  imageUris       String
+  finishes        String
+  lang            String    @default("en")
+  priceEur        Float?
+  priceEurFoil    Float?
+  priceUsd        Float?
+  priceUsdFoil    Float?
+  pricesUpdatedAt DateTime?
+  scryfallUri     String
+  legalities      String
+
+  stockItems   StockItem[]
+  priceAlerts  PriceAlert[]
+  buylistItems BuylistItem[]
+
+  @@index([name])
+  @@index([setCode])
+  @@index([oracleId])
+}
+
+model StockItem {
+  id             String          @id @default(uuid())
+  scryfallCardId String
+  condition      String
+  finish         String
+  quantity       Int             @default(0)
+  salePrice      Float?
+  pricingRuleId  String?
+  priceMode      String          @default("MANUAL")
+  language       String          @default("en")
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  scryfallCard   ScryfallCard    @relation(fields: [scryfallCardId], references: [id])
+  pricingRule    PricingRule?    @relation(fields: [pricingRuleId], references: [id])
+  cartItems      CartItem[]
+  orderItems     OrderItem[]
+  flashSaleItems FlashSaleItem[]
+
+  @@unique([scryfallCardId, condition, finish, language])
+}
+
+model ConditionModifier {
+  id         String @id @default(uuid())
+  condition  String @unique
+  multiplier Float
+}
+
+model FlashSale {
+  id        String          @id @default(uuid())
+  name      String
+  discount  Float
+  startsAt  DateTime
+  expiresAt DateTime
+  createdAt DateTime        @default(now())
+  isActive  Boolean         @default(true)
+  items     FlashSaleItem[]
+}
+
+model FlashSaleItem {
+  id          String    @id @default(uuid())
+  flashSaleId String
+  stockItemId String
+  flashSale   FlashSale @relation(fields: [flashSaleId], references: [id])
+  stockItem   StockItem @relation(fields: [stockItemId], references: [id])
+
+  @@unique([flashSaleId, stockItemId])
+}
+
+model RoundingBand {
+  id       String @id @default(uuid())
+  minPrice Float
+  maxPrice Float
+  roundTo  Float
+  priority Int    @default(0)
+}
+
+model PricingRule {
+  id         String      @id @default(uuid())
+  name       String
+  type       String
+  valueA     Float
+  valueB     Float?
+  minPrice   Float?
+  maxPrice   Float?
+  createdAt  DateTime    @default(now())
+  stockItems StockItem[]
+}
+
+model PriceHistory {
+  id             String   @id @default(uuid())
+  scryfallCardId String
+  priceEur       Float?
+  priceEurFoil   Float?
+  recordedAt     DateTime @default(now())
+
+  @@index([scryfallCardId, recordedAt])
+}
+
+model SyncLog {
+  id            String    @id @default(uuid())
+  type          String
+  status        String
+  cardsUpserted Int?
+  error         String?
+  startedAt     DateTime  @default(now())
+  finishedAt    DateTime?
+}
+
+model Cart {
+  id        String     @id @default(uuid())
+  userId    String     @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  user      User       @relation(fields: [userId], references: [id])
+  items     CartItem[]
+}
+
+model CartItem {
+  id          String    @id @default(uuid())
+  cartId      String
+  stockItemId String
+  quantity    Int       @default(1)
+  priceAtAdd  Float?
+  createdAt   DateTime  @default(now())
+  cart        Cart      @relation(fields: [cartId], references: [id])
+  stockItem   StockItem @relation(fields: [stockItemId], references: [id])
+
+  @@unique([cartId, stockItemId])
+}
+
+model Order {
+  id         String      @id @default(uuid())
+  userId     String
+  status     String      @default("PENDING") // PENDING | CONFIRMED | CANCELLED
+  totalPrice Float?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  user       User        @relation(fields: [userId], references: [id])
+  items      OrderItem[]
+}
+
+model OrderItem {
+  id              String    @id @default(uuid())
+  orderId         String
+  stockItemId     String
+  quantity        Int
+  priceAtPurchase Float?
+  order           Order     @relation(fields: [orderId], references: [id])
+  stockItem       StockItem @relation(fields: [stockItemId], references: [id])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  type      String
+  linkUrl   String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model StockNotification {
+  id             String   @id @default(uuid())
+  userId         String
+  oracleId       String
+  scryfallCardId String?
+  isFulfilled    Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  user           User     @relation(fields: [userId], references: [id])
+}
+
+model PriceAlert {
+  id               String       @id @default(uuid())
+  scryfallCardId   String
+  storeId          String
+  oldPrice         Float
+  newPrice         Float
+  percentageChange Float
+  timeframe        String       @default("DAILY")
+  createdAt        DateTime     @default(now())
+  scryfallCard     ScryfallCard @relation(fields: [scryfallCardId], references: [id])
+  store            Store        @relation(fields: [storeId], references: [id])
+}
+
+model Article {
+  id        String    @id @default(uuid())
+  title     String
+  content   String
+  imageUrl  String?
+  tags      String // Comma-separated tags, e.g. "noticias,metajuego"
+  endDate   DateTime? // Optional end date from which the article won't be visible
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model BuylistRequest {
+  id          String        @id @default(uuid())
+  userId      String
+  status      String        @default("PENDING") // PENDING, APPROVED, REJECTED
+  totalPrice  Float
+  defaultRate Float
+  tradeType   String        @default("CASH") // CASH, STORE_CREDIT
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  user        User          @relation(fields: [userId], references: [id])
+  items       BuylistItem[]
+}
+
+model BuylistItem {
+  id               String         @id @default(uuid())
+  buylistRequestId String
+  scryfallCardId   String
+  quantity         Int            @default(1)
+  condition        String // NM, LP, MP, HP, PO
+  finish           String // foil, nonfoil, etched
+  language         String         @default("en")
+  marketPrice      Float
+  buyPrice         Float
+  scryfallCard     ScryfallCard   @relation(fields: [scryfallCardId], references: [id])
+  buylistRequest   BuylistRequest @relation(fields: [buylistRequestId], references: [id], onDelete: Cascade)
+}
+
+model BuylistPriceBand {
+  id         String   @id @default(uuid())
+  minPrice   Float
+  maxPrice   Float
+  rateCash   Float
+  rateCredit Float
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}

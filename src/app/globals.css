@@ -1,0 +1,37 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-inter), "Inter", Arial, sans-serif;
+
+  --color-background: #121212;
+  --color-foreground: #ededed;
+  
+  --color-surface: #1E1E1E;
+  
+  --color-indigo-accent: #6366F1;
+  
+  --color-valid: #10B981;
+  --color-dispute: #EF4444;
+  
+  --color-mana-w: #FDE047;
+  --color-mana-u: #3B82F6;
+  --color-mana-b: #171717;
+  --color-mana-r: #EF4444;
+  --color-mana-g: #10B981;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Utilities for tabular numbers */
+.tabular-nums {
+  font-feature-settings: "tnum", "lnum";
+}
