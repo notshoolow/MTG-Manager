@@ -57,7 +57,7 @@ export default async function LeaderboardPage({
  
   const getSortHref = (newSortBy: string) => {
     const newOrder = (sortBy === newSortBy && order === 'desc') ? 'asc' : 'desc';
-    return `/admin/leaderboard?sortBy=${newSortBy}&order=${newOrder}`;
+    return `/admin/tournaments/leaderboard?sortBy=${newSortBy}&order=${newOrder}`;
   };
  
   const SortArrow = ({ column }: { column: string }) => {

@@ -8,6 +8,8 @@ Este documento describe las capas de arquitectura de la aplicación **MTG Manage
 
 El siguiente diagrama detalla la jerarquía de las capas de software, sus dependencias y el flujo de los datos desde la interfaz de usuario hasta la base de datos:
 
+![Diagrama de Capas de Arquitectura (Fondo Blanco)](architecture_layers.png)
+
 ```mermaid
 graph TD
     classDef client fill:#2563eb,stroke:#1d4ed8,stroke-width:2px,color:#fff;

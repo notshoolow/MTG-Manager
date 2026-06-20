@@ -8,6 +8,8 @@ Este documento presenta el diagrama entidad-relación (ERD) actualizado para el 
 
 El siguiente diagrama muestra las entidades y cómo se relacionan entre sí. Puedes interactuar con él si tu visualizador de Markdown soporta Mermaid:
 
+![Diagrama Entidad-Relación (Fondo Blanco)](entity_relationship_diagram.png)
+
 ```mermaid
 erDiagram
     %% ==========================================

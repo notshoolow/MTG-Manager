@@ -8,6 +8,8 @@ Este documento detalla la interacción entre los usuarios (Jugadores), los admin
 
 El siguiente mapa muestra a qué módulos y funcionalidades tiene acceso cada actor del sistema:
 
+![Mapa General de Casos de Uso (Fondo Blanco)](use_cases_map.png)
+
 ```mermaid
 graph LR
     classDef player fill:#2a4494,stroke:#3b5998,stroke-width:2px,color:#fff;
