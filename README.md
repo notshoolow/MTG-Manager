@@ -137,7 +137,7 @@ Si deseas ejecutar el proyecto localmente para desarrollo:
 
 1.  **Clonar el repositorio:**
     ```bash
-    git clone https://github.com/tu-usuario/mtg-manager.git
+    git clone https://github.com/notshoolow/mtg-manager.git
     cd mtg-manager
     ```
 
